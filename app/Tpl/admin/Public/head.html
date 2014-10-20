@@ -1,0 +1,17 @@
+<div class="g-header">
+	<div class="m-logo left">
+		APP后台管理系统
+	</div>
+	<div class="m-topmenu left">
+		<ul>
+			<volist name = "AdminMenuGroup" id = "vo">
+				<li><a href="{$vo.url|U}?curgroup={$vo.id}" title="{$vo.name}" <?php if(mysession("curgroup") == $vo["id"]) echo ' class="on" ' ?>>{$vo.name}</a></li>
+			</volist>
+		</ul>
+	</div>
+	<div class="m-topaction right">
+		欢迎您: {$auname}, 
+		<a href="{:U('/admin/public/logout')}" title="{$menu.title}">退出登录</a>
+	</div>
+</div>
+

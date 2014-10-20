@@ -1,0 +1,161 @@
+<{$phpstart}>
+
+// +----------------------------------------------------------------------
+// | ITZI [ 让一切变得简单 ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.itzi.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: wenliang <www.vvv@qq.com>
+// +----------------------------------------------------------------------
+
+class <{$action_name}>Model extends Model{
+
+	protected $_validate = array(
+<{$field_validate}>
+	);
+	protected $_auto = array ( 
+		array('create_time','time',1,'function'), // 对create_time字段在更新的时候写入当前时间戳
+		array('update_time','time',2,'function'), // 对create_time字段在更新的时候写入当前时间戳
+<{$field_auto}>
+	);
+
+	function add<{$action_name}>(){
+		$data = $this->data;
+		if($this->custom_before_insert($data)){
+			D("Table")->updateTable("<{$table_name}>");
+			if($this->add()){
+				return $this->custom_after_insert($data);
+			}else{
+				return false;
+			}
+		}else{
+			return false;
+		}
+	}
+
+	function save<{$action_name}>(){
+		$data = $this->data;
+		if($this->custom_before_update($data)){
+			D("Table")->updateTable("<{$table_name}>");
+			if($this->save()){
+				return $this->custom_after_update($data);
+			}else{
+				return false;
+			}
+		}else{
+			return false;
+		}
+	}
+
+	function delete<{$action_name}>(){
+		$id = $this->options["where"]["id"];
+		if($this->custom_before_delete($id)){
+			D("Table")->updateTable("<{$table_name}>");
+			if($this->delete()){
+				return $this->custom_after_delete($id);
+			}else{
+				return false;
+			}
+		}else{
+			return false;
+		}
+	}
+
+	function custom_before_insert($data){
+		$this->fixarray();
+<{$table_info.custom_before_insert}>
+		return true;
+	}
+
+	function custom_before_update($data){
+		$this->fixarray();
+<{$table_info.custom_before_update}>
+		return true;
+	}
+
+	function custom_before_delete($id){
+<{$table_info.custom_before_delete}>
+		return true;
+	}
+
+	function custom_after_insert($data){
+		$this->fixarray();
+<{$table_info.custom_after_insert}>
+		return true;
+	}
+
+	function custom_after_update($data){
+		$this->fixarray();
+<{$table_info.custom_after_update}>
+		return true;
+	}
+
+	function custom_after_delete($id){
+<{$table_info.custom_after_delete}>
+		return true;
+	}
+	
+	function fixarray(){
+		foreach ($this->data as $key => $value) {
+			if(is_array($value)){
+				$this->data[$key] = implode(",", $this->data[$key]);
+			}
+		}
+	}
+
+<{$t}>function __get($property_name){<{$rn}>
+<?php 
+	if($table_info["type"] == 1){
+?>
+		if($property_name == 'field_pid'){
+			$list = tree_to_list2(list_to_tree(D("<{$action_name}>")->select()));
+			foreach($list as $k => $v){
+				$result[$v["id"]] = $v["name"];
+			}
+			return $result;
+		}
+<?php
+	}
+?>
+<volist name = "field_define_list" id = "field">
+<{$t}><{$t}>if($property_name == 'field_<{$field.name}>'){
+<?php 
+	$param = $field["param"];
+	if($param["type"] == 0){
+		$data = $param["data"];
+		$data_arr = gen_para($data);
+?>
+<{$t}><{$t}><{$t}>return array(
+<volist name = "data_arr" id ="vo">
+<{$t}><{$t}><{$t}><{$t}>"<{$vo.0}>" => "<{$vo.1}>",<{$rn}>
+</volist>
+<{$t}><{$t}><{$t}>);
+<?php
+	} 
+	if($param["type"] == 1){
+		$table = $param["table"];
+		$key = $param["key"];
+		$value = $param["value"];
+		$tableinfo = D("Table")->where("name = '".strtolower($table)."'")->find();
+		if($tableinfo["type"] == 1){
+?>
+<{$t}><{$t}><{$t}>$list = tree_to_list2(list_to_tree(D("<{$table}>")->select()));
+<?php
+		}else{
+?>
+<{$t}><{$t}><{$t}>$list = D("<{$table}>")->select();
+<?php
+		}
+?>
+<{$t}><{$t}><{$t}>foreach($list as $k => $v){
+<{$t}><{$t}><{$t}><{$t}>$result[$v["<{$key}>"]] = $v["<{$value}>"];
+<{$t}><{$t}><{$t}>}
+<{$t}><{$t}><{$t}>return $result;<{$rn}>
+<?php
+	}
+?>
+<{$t}><{$t}>}<{$rn}>
+</volist>
+	}
+}
+<{$phpend}>
